@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0b1026" />
+  <meta name="description" content="한국인을 위한 AI 사용법, 게임으로 배우는 프롬프트 엔지니어링. 스토리 캠페인, 번개 퀴즈, 모범 프롬프트 도감으로 AI를 쉽고 빠르게 사용하세요." />
+  <title>프롬프트 마스터 | 한국인을 위한 AI 사용법</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🤖</text></svg>" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <!-- 배경 이펙트 레이어 -->
+  <canvas id="bg-canvas" aria-hidden="true"></canvas>
+  <div class="bg-orb orb-1" aria-hidden="true"></div>
+  <div class="bg-orb orb-2" aria-hidden="true"></div>
+  <div class="bg-orb orb-3" aria-hidden="true"></div>
+
+  <!-- 상단 HUD -->
+  <header id="hud" class="hidden">
+    <button class="hud-home" id="btn-home" aria-label="홈으로">🏠</button>
+    <div class="hud-rank" id="hud-rank">
+      <span class="hud-rank-emoji" id="hud-rank-emoji">🌱</span>
+      <div class="hud-rank-info">
+        <span class="hud-rank-name" id="hud-rank-name">프롬프트 입문자</span>
+        <div class="xp-bar"><div class="xp-fill" id="xp-fill"></div></div>
+      </div>
+    </div>
+    <div class="hud-coins" title="프롬프트 코인">🪙 <span id="hud-coins">0</span></div>
+    <button class="hud-mute" id="btn-mute" aria-label="소리 켜기/끄기">🔊</button>
+  </header>
+
+  <!-- 토스트 알림 -->
+  <div id="toast" class="toast" role="status"></div>
+
+  <main id="app">
+
+    <!-- ═══════════ 타이틀 화면 ═══════════ -->
+    <section class="screen active" id="screen-title">
+      <div class="title-wrap">
+        <div class="title-badge">🇰🇷 한국인을 위한 AI 사용법 · 게임으로 배우는 프롬프트</div>
+        <h1 class="game-title">프롬프트<br /><span class="grad-text">마스터</span></h1>
+        <p class="game-subtitle">할머니도, 대학생도, 직장인도…<br /><strong>딱 5가지만</strong> 알면 AI를 10배 잘 쓸 수 있어요</p>
+
+        <!-- 마스코트 프롬토 -->
+        <div class="mascot-stage">
+          <div class="speech-bubble" id="speech-bubble">안녕! 나는 <b>프롬토</b>야.<br />AI에게 잘 부탁하는 법,<br />내가 알려줄게! ✨</div>
+          <div class="mascot" id="mascot" aria-hidden="true">
+            <div class="mascot-antenna"><div class="mascot-antenna-ball"></div></div>
+            <div class="mascot-head">
+              <div class="mascot-eye left"></div>
+              <div class="mascot-eye right"></div>
+              <div class="mascot-mouth"></div>
+              <div class="mascot-cheek left"></div>
+              <div class="mascot-cheek right"></div>
+            </div>
+            <div class="mascot-body">
+              <div class="mascot-core">AI</div>
+            </div>
+            <div class="mascot-shadow"></div>
+          </div>
+        </div>
+
+        <div class="title-buttons">
+          <button class="btn btn-primary btn-big" id="btn-story">📖 스토리 모드<small>12개의 미션으로 배우는 실전 프롬프트</small></button>
+          <button class="btn btn-quiz btn-big" id="btn-quiz">⚡ 번개 퀴즈<small>60초! 프롬프트 순발력 테스트</small></button>
+          <div class="title-buttons-row">
+            <button class="btn btn-ghost" id="btn-collection">📕 프롬프트 도감</button>
+            <button class="btn btn-ghost" id="btn-guide">📘 실전 가이드북</button>
+          </div>
+        </div>
+
+        <div class="title-stats" id="title-stats"></div>
+      </div>
+    </section>
+
+    <!-- ═══════════ 스토리 맵 ═══════════ -->
+    <section class="screen" id="screen-map">
+      <div class="page-head">
+        <h2>🗺️ 스토리 모드</h2>
+        <p>각 미션은 <b>역할 · 목적 · 맥락 · 형식 · 톤</b> — 5가지 요소로 프롬프트를 조립하는 훈련입니다.</p>
+      </div>
+      <div id="chapter-list"></div>
+    </section>
+
+    <!-- ═══════════ 레벨 플레이 ═══════════ -->
+    <section class="screen" id="screen-level">
+      <div class="level-topbar">
+        <button class="btn btn-ghost btn-small" id="btn-level-back">← 지도</button>
+        <div class="level-title" id="level-title">미션</div>
+        <div class="level-chip" id="level-chapter-chip">챕터 1</div>
+      </div>
+
+      <!-- 1단계: 상황 제시 -->
+      <div class="stage active" id="stage-situation">
+        <div class="situation-card">
+          <div class="character-avatar" id="char-avatar">👵</div>
+          <div class="character-info">
+            <div class="character-name" id="char-name">할머니</div>
+            <div class="character-role" id="char-role">손주 생일 편지</div>
+          </div>
+        </div>
+        <div class="dialogue-box">
+          <div class="dialogue-label">💬 상황</div>
+          <p id="situation-text"></p>
+        </div>
+        <div class="goal-box">
+          <div class="goal-label">🎯 당신의 미션</div>
+          <p id="goal-text"></p>
+        </div>
+        <button class="btn btn-primary btn-big full" id="btn-situation-go">프롬프트 조립하러 가기 →</button>
+      </div>
+
+      <!-- 2단계: 프롬프트 조립 -->
+      <div class="stage" id="stage-build">
+        <div class="build-formula">✨ 좋은 프롬프트 공식 : <b>역할 + 목적 + 맥락 + 형식 + 톤</b></div>
+        <div id="slots-container"></div>
+        <div class="build-footer">
+          <div class="build-progress"><div class="build-progress-fill" id="build-progress-fill"></div><span id="build-progress-text">0 / 5 요소 선택</span></div>
+          <button class="btn btn-send" id="btn-send" disabled>🚀 AI에게 전송</button>
+        </div>
+      </div>
+
+      <!-- 3단계: AI 응답 + 후속 질문 -->
+      <div class="stage" id="stage-answer">
+        <div class="ai-window">
+          <div class="ai-window-bar"><span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span><span class="ai-window-title">프롬토 AI — 응답 중…</span></div>
+          <div class="ai-response" id="ai-response"><span class="caret">▋</span></div>
+        </div>
+        <div class="followup-panel hidden" id="followup-panel">
+          <div class="followup-label">💡 한 번에 완벽하진 않아요! <b>후속 질문</b>으로 다듬어 보세요</div>
+          <p class="followup-question" id="followup-question"></p>
+          <div class="followup-options" id="followup-options"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════ 번개 퀴즈 ═══════════ -->
+    <section class="screen" id="screen-quiz">
+      <div class="page-head">
+        <h2>⚡ 번개 퀴즈</h2>
+        <p>60초 안에 최대한 많이! 연속 정답 시 <b>콤보 보너스</b> +20점</p>
+      </div>
+
+      <div class="quiz-setup" id="quiz-setup">
+        <div class="quiz-best-card">
+          <div class="quiz-best-label">🏆 최고 점수</div>
+          <div class="quiz-best-score" id="quiz-best-score">0점</div>
+        </div>
+        <div class="quiz-rules">
+          <div class="quiz-rule">⏱️ <b>60초</b> 제한</div>
+          <div class="quiz-rule">🔥 콤보 시 <b>+20점</b>씩 추가</div>
+          <div class="quiz-rule">🪙 정답당 <b>코인 2개</b></div>
+        </div>
+        <button class="btn btn-quiz btn-big full" id="btn-quiz-start">60초 시작! ⚡</button>
+      </div>
+
+      <div class="quiz-play hidden" id="quiz-play">
+        <div class="quiz-hud">
+          <div class="quiz-timer-wrap"><div class="quiz-timer-fill" id="quiz-timer-fill"></div></div>
+          <div class="quiz-hud-row">
+            <span class="quiz-time">⏱️ <b id="quiz-time">60</b>초</span>
+            <span class="quiz-combo" id="quiz-combo">🔥 0 콤보</span>
+            <span class="quiz-score">점수 <b id="quiz-score">0</b></span>
+          </div>
+        </div>
+        <div class="quiz-question-card">
+          <div class="quiz-qtype" id="quiz-qtype">빠진 요소 찾기</div>
+          <p class="quiz-question" id="quiz-question"></p>
+        </div>
+        <div class="quiz-options" id="quiz-options"></div>
+      </div>
+
+      <div class="quiz-result hidden" id="quiz-result">
+        <div class="quiz-result-emoji" id="quiz-result-emoji">🎉</div>
+        <h3 id="quiz-result-title">시간 종료!</h3>
+        <div class="quiz-result-score"><span id="quiz-final-score">0</span>점</div>
+        <p class="quiz-result-detail" id="quiz-result-detail"></p>
+        <div class="quiz-result-best" id="quiz-result-best"></div>
+        <div class="quiz-result-buttons">
+          <button class="btn btn-quiz" id="btn-quiz-retry">🔄 다시 도전</button>
+          <button class="btn btn-ghost" id="btn-quiz-home">🏠 홈으로</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════ 프롬프트 도감 ═══════════ -->
+    <section class="screen" id="screen-collection">
+      <div class="page-head">
+        <h2>📕 프롬프트 도감</h2>
+        <p>스토리 미션을 클리어하면 <b>모범 답안 프롬프트</b>가 도감에 등록됩니다. 복사해서 바로 써보세요!</p>
+      </div>
+      <div class="collection-progress"><div class="collection-progress-fill" id="collection-progress-fill"></div><span id="collection-progress-text">0 / 12 수집</span></div>
+      <div id="collection-grid"></div>
+    </section>
+
+    <!-- ═══════════ 실전 가이드북 ═══════════ -->
+    <section class="screen" id="screen-guide">
+      <div class="page-head">
+        <h2>📘 실전 가이드북</h2>
+        <p>AI(클로드, 챗GPT 등)에게 똑똑하게 부탁하는 모든 방법을 한 페이지에</p>
+      </div>
+
+      <div class="guide-section">
+        <h3>🎯 기본 공식 — <span class="grad-text">역·목·맥·형·톤</span></h3>
+        <div class="elements-grid" id="elements-grid"></div>
+      </div>
+
+      <div class="guide-section">
+        <h3>💬 자주 쓰는 후속 질문 <small>(눌러서 복사)</small></h3>
+        <div class="followup-chips" id="followup-chips"></div>
+      </div>
+
+      <div class="guide-section">
+        <h3>🧠 실전 팁 10가지</h3>
+        <ol class="tips-list" id="tips-list"></ol>
+      </div>
+
+      <div class="guide-section">
+        <h3>🔁 황금 루프 — AI와 일하는 법</h3>
+        <div class="loop-diagram">
+          <div class="loop-step">1<b>구체적으로 부탁하기</b></div>
+          <div class="loop-arrow">→</div>
+          <div class="loop-step">2<b>결과 확인하기</b></div>
+          <div class="loop-arrow">→</div>
+          <div class="loop-step">3<b>고쳐 말하기</b><small>"더 짧게", "예시 3개", "표로"</small></div>
+          <div class="loop-arrow">→</div>
+          <div class="loop-step gold">4<b>완성!</b></div>
+        </div>
+        <p class="loop-note">한 번에 완벽한 답은 없습니다. <b>결과를 보고 3번쯤 고쳐 말하는 것</b>이 실전입니다. 고쳐 말할수록 AI는 당신을 더 잘 이해합니다.</p>
+      </div>
+    </section>
+  </main>
+
+  <!-- ═══════════ 결과 모달 ═══════════ -->
+  <div class="modal-overlay hidden" id="modal-result" role="dialog" aria-modal="true">
+    <div class="modal-card">
+      <div class="modal-stars" id="modal-stars"><span class="star">★</span><span class="star">★</span><span class="star">★</span></div>
+      <h3 class="modal-title" id="modal-title">미션 클리어!</h3>
+      <p class="modal-sub" id="modal-sub"></p>
+      <div class="modal-score-row">
+        <div class="modal-score-item"><span class="modal-score-num" id="modal-score">0</span><span class="modal-score-label">프롬프트 점수</span></div>
+        <div class="modal-score-item"><span class="modal-score-num" id="modal-xp">+0</span><span class="modal-score-label">획득 XP</span></div>
+        <div class="modal-score-item"><span class="modal-score-num" id="modal-coins">+0</span><span class="modal-score-label">획득 코인</span></div>
+      </div>
+      <div class="modal-feedback" id="modal-feedback"></div>
+      <div class="modal-buttons">
+        <button class="btn btn-ghost" id="modal-btn-retry">🔄 다시 도전</button>
+        <button class="btn btn-primary" id="modal-btn-next">다음 미션 →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ 도감 상세 모달 ═══════════ -->
+  <div class="modal-overlay hidden" id="modal-detail" role="dialog" aria-modal="true">
+    <div class="modal-card detail-card">
+      <button class="modal-close" id="modal-detail-close" aria-label="닫기">✕</button>
+      <div class="detail-head"><span class="detail-emoji" id="detail-emoji">📕</span><div><h3 id="detail-title"></h3><p id="detail-mission"></p></div></div>
+      <div class="detail-prompt-box">
+        <div class="detail-prompt-label">✅ 모범 프롬프트 <button class="copy-btn" id="btn-copy-prompt">📋 복사</button></div>
+        <pre class="detail-prompt" id="detail-prompt"></pre>
+      </div>
+      <div class="detail-why"><div class="detail-why-label">💡 왜 좋은가?</div><p id="detail-why"></p></div>
+    </div>
+  </div>
+
+  <canvas id="confetti-canvas" aria-hidden="true"></canvas>
+
+  <script src="js/audio.js"></script>
+  <script src="js/levels.js"></script>
+  <script src="js/levels-ch1.js"></script>
+  <script src="js/levels-ch2.js"></script>
+  <script src="js/levels-ch3.js"></script>
+  <script src="js/levels-ch4.js"></script>
+  <script src="js/quiz.js"></script>
+  <script src="js/game.js"></script>
+</body>
+</html>
