@@ -328,114 +328,113 @@ function drawBackground(g) {
   const top = -OV;
   const bottom = h + OV;
 
-  /* sky */
-  const sky = g.createLinearGradient(0, top, 0, horizonY + 20);
-  sky.addColorStop(0, "#0d2333");
-  sky.addColorStop(0.24, "#274a5b");
-  sky.addColorStop(0.5, "#5c7d82");
-  sky.addColorStop(0.72, "#b28c6b");
-  sky.addColorStop(0.88, "#e3a96d");
-  sky.addColorStop(1, "#f7c987");
+  /* ---- sky: deep teal dusk grading into amber horizon ---- */
+  const sky = g.createLinearGradient(0, top, 0, horizonY + 28);
+  sky.addColorStop(0, "#07121c");
+  sky.addColorStop(0.16, "#122b3a");
+  sky.addColorStop(0.34, "#294d5a");
+  sky.addColorStop(0.5, "#52737a");
+  sky.addColorStop(0.64, "#948a75");
+  sky.addColorStop(0.76, "#c99b70");
+  sky.addColorStop(0.88, "#edb87e");
+  sky.addColorStop(1, "#ffdda0");
   g.fillStyle = sky;
-  g.fillRect(minX, top, maxX - minX, horizonY + 30 - top);
+  g.fillRect(minX, top, maxX - minX, horizonY + 34 - top);
 
-  /* faint early stars */
+  /* ---- sparse early stars ---- */
   const starRnd = mulberry32(44112);
   g.save();
-  for (let i = 0; i < 34; i++) {
+  for (let i = 0; i < 54; i++) {
     const sx = minX + starRnd() * (maxX - minX);
-    const sy = top + 6 + starRnd() * (horizonY - top) * 0.34;
-    const a = 0.08 + starRnd() * 0.28;
-    g.fillStyle = `rgba(220,232,255,${a})`;
+    const sy = top + 4 + starRnd() * (horizonY - top) * 0.42;
+    const fade = clamp(1 - (sy - top) / (horizonY * 0.62), 0, 1);
+    const a = (0.08 + starRnd() * 0.46) * fade;
+    if (a < 0.03) continue;
+    g.fillStyle = `rgba(214,230,255,${a})`;
     g.beginPath();
-    g.arc(sx, sy, 0.35 + starRnd() * 0.85, 0, TAU);
+    g.arc(sx, sy, 0.3 + starRnd() * 0.9, 0, TAU);
     g.fill();
   }
   g.restore();
 
-  /* sun bloom */
-  g.save();
-  const bloom = g.createRadialGradient(sunX, sunY, 0, sunX, sunY, Math.max(w, h) * 0.58);
-  bloom.addColorStop(0, "rgba(255,244,203,0.95)");
-  bloom.addColorStop(0.05, "rgba(255,219,148,0.72)");
-  bloom.addColorStop(0.16, "rgba(255,182,102,0.32)");
-  bloom.addColorStop(0.42, "rgba(255,158,84,0.11)");
-  bloom.addColorStop(1, "rgba(255,150,70,0)");
-  g.fillStyle = bloom;
-  g.fillRect(minX, top, maxX - minX, horizonY + 80 - top);
+  /* ---- sun bloom, anamorphic streak and lens ghosts ---- */
+  drawSunHalo(g, sunX, sunY, w, h);
 
-  const core = g.createRadialGradient(sunX, sunY, 0, sunX, sunY, charH * 0.105);
-  core.addColorStop(0, "#fffdf0");
-  core.addColorStop(0.55, "#ffedb4");
-  core.addColorStop(1, "rgba(255,213,132,0)");
-  g.fillStyle = core;
-  g.beginPath();
-  g.arc(sunX, sunY, charH * 0.105, 0, TAU);
-  g.fill();
-  g.restore();
-
-  /* clouds */
+  /* ---- layered clouds ---- */
   const cloudRnd = mulberry32(9021);
   g.save();
-  g.filter = "blur(7px)";
-  for (let i = 0; i < 7; i++) {
-    const cx = minX + cloudRnd() * (maxX - minX);
-    const cy = horizonY - h * (0.12 + cloudRnd() * 0.34);
-    const cw = w * (0.1 + cloudRnd() * 0.2);
-    const ch = cw * (0.08 + cloudRnd() * 0.05);
-    const warm = i % 2 === 0;
-    cloud(g, cx, cy, cw, ch, warm ? "rgba(255,214,166,0.22)" : "rgba(196,208,206,0.14)");
+  g.filter = "blur(9px)";
+  for (let i = 0; i < 11; i++) {
+    const cx = minX + cloudRnd() * (maxX - minX) * 1.12 - w * 0.06;
+    const cy = horizonY - h * (0.1 + cloudRnd() * 0.4);
+    const cw = w * (0.13 + cloudRnd() * 0.28);
+    const ch = cw * (0.07 + cloudRnd() * 0.06);
+    const warm = cx < sunX + w * 0.42;
+    cloud(
+      g,
+      cx,
+      cy,
+      cw,
+      ch,
+      warm ? "rgba(255,214,168,0.22)" : "rgba(174,196,198,0.12)"
+    );
   }
   g.restore();
 
-  /* distant ridges */
-  ridge(g, horizonY + 6, h * 0.108, "#547478", 3, 0.72);
-  ridge(g, horizonY + 10, h * 0.078, "#3b5e61", 7, 0.86);
-  ridge(g, horizonY + 14, h * 0.05, "#2a4a49", 11, 1);
+  /* ---- distant ridges, each softer than the last ---- */
+  ridge(g, horizonY + 4, h * 0.13, "#647f82", 3, 0.56);
+  ridge(g, horizonY + 9, h * 0.094, "#496a6d", 7, 0.72);
+  ridge(g, horizonY + 14, h * 0.062, "#325458", 11, 0.88);
 
   /* horizon haze */
-  g.save();
-  const haze = g.createLinearGradient(0, horizonY - h * 0.05, 0, horizonY + h * 0.085);
-  haze.addColorStop(0, "rgba(255,198,126,0)");
-  haze.addColorStop(0.5, "rgba(255,200,132,0.2)");
-  haze.addColorStop(0.78, "rgba(255,191,124,0.09)");
-  haze.addColorStop(1, "rgba(255,191,124,0)");
+  const haze = g.createLinearGradient(0, horizonY - h * 0.1, 0, horizonY + h * 0.1);
+  haze.addColorStop(0, "rgba(255,205,145,0)");
+  haze.addColorStop(0.46, "rgba(255,210,156,0.22)");
+  haze.addColorStop(0.62, "rgba(255,198,134,0.16)");
+  haze.addColorStop(1, "rgba(255,190,120,0)");
   g.fillStyle = haze;
-  g.fillRect(minX, horizonY - h * 0.06, maxX - minX, h * 0.17);
-  g.restore();
+  g.fillRect(minX, horizonY - h * 0.1, maxX - minX, h * 0.2);
 
-  /* forest rows */
-  drawTreeRow(g, horizonY + 6, charH * 0.27, "#2b4d49", 28, 211, 0.9);
-  drawTreeRow(g, horizonY + 18, charH * 0.4, "#1c3835", 40, 517, 1);
+  /* ---- forest rows receding into fog ---- */
+  drawTreeRow(g, horizonY + 4, charH * 0.24, "#33534f", 26, 211, 0.82);
+  fogBand(g, horizonY + 3, h * 0.055, 0.24);
+  drawTreeRow(g, horizonY + 14, charH * 0.36, "#244540", 36, 517, 0.94);
+  fogBand(g, horizonY + 17, h * 0.04, 0.14);
+  drawTreeRow(g, horizonY + 22, charH * 0.5, "#173430", 52, 733, 1);
 
-  /* ground */
-  const ground = g.createLinearGradient(0, horizonY, 0, bottom);
-  ground.addColorStop(0, "#7b864d");
-  ground.addColorStop(0.09, "#66753e");
-  ground.addColorStop(0.28, "#4f6336");
-  ground.addColorStop(0.55, "#3c4f2c");
-  ground.addColorStop(0.82, "#2b3d26");
-  ground.addColorStop(1, "#1c2c20");
+  /* ---- meadow ---- */
+  const ground = g.createLinearGradient(0, horizonY + 6, 0, bottom);
+  ground.addColorStop(0, "#8b8a55");
+  ground.addColorStop(0.07, "#737a47");
+  ground.addColorStop(0.2, "#5d6c3d");
+  ground.addColorStop(0.42, "#4a5b33");
+  ground.addColorStop(0.66, "#374829");
+  ground.addColorStop(0.85, "#293922");
+  ground.addColorStop(1, "#1a281c");
   g.fillStyle = ground;
-  g.fillRect(minX, horizonY + 8, maxX - minX, bottom - horizonY);
+  g.fillRect(minX, horizonY + 6, maxX - minX, bottom - horizonY);
 
-  /* warm light pooling from the sun */
+  /* warm light pooling from the low sun */
   g.save();
-  const lightPool = g.createRadialGradient(sunX, horizonY, 0, sunX, horizonY, w * 1.05);
-  lightPool.addColorStop(0, "rgba(255,205,128,0.3)");
-  lightPool.addColorStop(0.35, "rgba(255,184,102,0.13)");
-  lightPool.addColorStop(1, "rgba(255,170,90,0)");
+  const lightPool = g.createRadialGradient(sunX, horizonY, 0, sunX, horizonY, w * 1.18);
+  lightPool.addColorStop(0, "rgba(255,214,142,0.32)");
+  lightPool.addColorStop(0.3, "rgba(255,190,108,0.16)");
+  lightPool.addColorStop(0.7, "rgba(255,172,82,0.04)");
+  lightPool.addColorStop(1, "rgba(255,160,70,0)");
   g.fillStyle = lightPool;
   g.fillRect(minX, horizonY, maxX - minX, bottom - horizonY);
   g.restore();
 
-  /* horizon grass lip */
+  /* raking shafts across the grass */
+  drawGroundLight(g, minX, maxX, horizonY, groundY, sunX, charH);
+
+  /* horizon lip */
   g.save();
-  g.strokeStyle = "rgba(206,190,116,0.28)";
+  g.strokeStyle = "rgba(226,205,138,0.3)";
   g.lineWidth = 1.4;
   g.beginPath();
   for (let x = minX; x <= maxX; x += 10) {
-    const y = horizonY + 8 + Math.sin(x * 0.05) * 1.1;
+    const y = horizonY + 8 + Math.sin(x * 0.05) * 1.2;
     if (x === minX) g.moveTo(x, y);
     else g.lineTo(x, y);
   }
@@ -444,37 +443,238 @@ function drawBackground(g) {
 
   drawGroundDetail(g, minX, maxX, horizonY, bottom);
 
-  /* cabin on the far right */
-  const cabinX = w * (layout.landscape ? 0.86 : 0.845);
-  const cabinBase = horizonY + (groundY - horizonY) * 0.17;
-  drawCabin(g, cabinX, cabinBase, charH * 0.3);
+  /* ---- cabin tucked into the treeline ---- */
+  const cabinX = w * (layout.landscape ? 0.855 : 0.842);
+  const cabinBase = horizonY + (groundY - horizonY) * 0.16;
+  const cabinSize = charH * 0.33;
+  layout.cabinX = cabinX;
+  layout.cabinBase = cabinBase;
+  layout.cabinSize = cabinSize;
+  drawCabin(g, cabinX, cabinBase, cabinSize);
 
-  /* soft dirt clearing under the chopping area */
+  /* ---- soft dirt clearing under the work area ---- */
   g.save();
   const dirt = g.createRadialGradient(
-    layout.stumpX + charH * 0.25,
+    layout.stumpX + charH * 0.26,
     groundY + charH * 0.02,
     0,
-    layout.stumpX + charH * 0.25,
+    layout.stumpX + charH * 0.26,
     groundY + charH * 0.02,
-    charH * 0.62
+    charH * 0.66
   );
-  dirt.addColorStop(0, "rgba(88,65,38,0.32)");
-  dirt.addColorStop(0.55, "rgba(78,58,34,0.16)");
+  dirt.addColorStop(0, "rgba(96,70,40,0.34)");
+  dirt.addColorStop(0.5, "rgba(80,59,34,0.18)");
   dirt.addColorStop(1, "rgba(70,52,32,0)");
   g.fillStyle = dirt;
-  g.fillRect(minX, groundY - charH * 0.18, maxX - minX, charH * 0.6);
+  g.fillRect(minX, groundY - charH * 0.2, maxX - minX, charH * 0.64);
   g.restore();
 
-  /* foreground out-of-focus bracken at the edges */
+  /* ---- framing trees at the edges ---- */
+  drawFramingTree(g, -w * 0.015, groundY + h * 0.02, h * 0.74, 1, 9);
+  drawFramingTree(g, w * 1.015, groundY + h * 0.01, h * 0.64, -1, 15);
+  drawCanopyFrame(g, w, h, horizonY);
+
+  /* ---- out-of-focus foreground bracken ---- */
   g.save();
-  g.filter = "blur(1.6px)";
-  foregroundClump(g, -10, h + 20, charH * 0.24, 0.5, 1);
-  foregroundClump(g, w + 8, h + 16, charH * 0.23, -0.4, 2);
+  g.filter = "blur(1.8px)";
+  foregroundClump(g, -10, h + 20, charH * 0.26, 0.5, 1);
+  foregroundClump(g, w + 8, h + 16, charH * 0.25, -0.4, 2);
   g.restore();
 
-  /* extra grass overlapping the dirt, near the stump */
   drawGrassTufts(g, minX, maxX, horizonY, bottom, 30050 + 7);
+}
+
+function drawSunHalo(g, sunX, sunY, w, h) {
+  g.save();
+  const R = Math.max(w, h) * 0.74;
+  const bloom = g.createRadialGradient(sunX, sunY, 0, sunX, sunY, R);
+  bloom.addColorStop(0, "rgba(255,251,231,0.98)");
+  bloom.addColorStop(0.035, "rgba(255,238,192,0.92)");
+  bloom.addColorStop(0.09, "rgba(255,212,146,0.52)");
+  bloom.addColorStop(0.2, "rgba(255,184,106,0.24)");
+  bloom.addColorStop(0.48, "rgba(255,163,82,0.07)");
+  bloom.addColorStop(1, "rgba(255,150,70,0)");
+  g.fillStyle = bloom;
+  g.fillRect(sunX - R, sunY - R, R * 2, R * 2);
+
+  const coreR = Math.max(w, h) * 0.055;
+  const core = g.createRadialGradient(sunX, sunY, 0, sunX, sunY, coreR);
+  core.addColorStop(0, "#fffdf4");
+  core.addColorStop(0.5, "#ffedb8");
+  core.addColorStop(1, "rgba(255,214,140,0)");
+  g.fillStyle = core;
+  g.beginPath();
+  g.arc(sunX, sunY, coreR, 0, TAU);
+  g.fill();
+
+  g.globalCompositeOperation = "screen";
+  const streak = g.createLinearGradient(sunX - w * 0.55, sunY, sunX + w * 0.55, sunY);
+  streak.addColorStop(0, "rgba(255,216,160,0)");
+  streak.addColorStop(0.38, "rgba(255,226,184,0.12)");
+  streak.addColorStop(0.5, "rgba(255,245,216,0.26)");
+  streak.addColorStop(0.62, "rgba(255,226,184,0.12)");
+  streak.addColorStop(1, "rgba(255,216,160,0)");
+  g.fillStyle = streak;
+  g.fillRect(sunX - w * 0.55, sunY - 1.5, w * 1.1, 3);
+
+  for (let i = 1; i <= 3; i++) {
+    const dx = w * 0.2 * i;
+    const dy = h * 0.045 * i;
+    const r = w * (0.012 + i * 0.008);
+    const ghost = g.createRadialGradient(sunX + dx, sunY + dy, 0, sunX + dx, sunY + dy, r);
+    ghost.addColorStop(0, `rgba(255,206,140,${0.09 - i * 0.016})`);
+    ghost.addColorStop(1, "rgba(255,206,140,0)");
+    g.fillStyle = ghost;
+    g.beginPath();
+    g.arc(sunX + dx, sunY + dy, r, 0, TAU);
+    g.fill();
+  }
+  g.restore();
+}
+
+function fogBand(g, y, height, alpha) {
+  const { w } = view;
+  const grd = g.createLinearGradient(0, y - height, 0, y + height);
+  grd.addColorStop(0, "rgba(236,222,194,0)");
+  grd.addColorStop(0.5, `rgba(238,224,194,${alpha})`);
+  grd.addColorStop(1, "rgba(236,222,194,0)");
+  g.fillStyle = grd;
+  g.fillRect(-OV, y - height, w + OV * 2, height * 2);
+}
+
+function drawGroundLight(g, minX, maxX, horizonY, groundY, sunX, charH) {
+  const rnd = mulberry32(2244);
+  const { w } = view;
+  g.save();
+  g.filter = "blur(13px)";
+  for (let i = 0; i < 11; i++) {
+    const depth = 0.08 + rnd() * 0.92;
+    const y = horizonY + (groundY - horizonY) * depth;
+    const x = sunX + (rnd() - 0.3) * w * 1.15;
+    const rx = charH * (0.18 + rnd() * 0.52);
+    const ry = charH * (0.018 + depth * 0.032);
+    const grd = g.createLinearGradient(x - rx, y, x + rx, y);
+    grd.addColorStop(0, "rgba(255,214,146,0)");
+    grd.addColorStop(0.44, `rgba(255,212,140,${0.05 + rnd() * 0.08})`);
+    grd.addColorStop(1, "rgba(255,204,128,0)");
+    g.fillStyle = grd;
+    g.beginPath();
+    g.ellipse(x, y, rx, ry, -0.06, 0, TAU);
+    g.fill();
+  }
+  g.restore();
+}
+
+function drawFramingTree(g, x, baseY, height, dir, seed) {
+  const rnd = mulberry32(seed * 977 + 31);
+  g.save();
+  g.translate(x, baseY);
+
+  const trunkW = height * 0.082;
+  const trunkTop = -height * 0.52;
+
+  /* trunk with a warm sun-side rim */
+  const bark = g.createLinearGradient(-trunkW, 0, trunkW, 0);
+  bark.addColorStop(0, "rgba(18,17,13,0.94)");
+  bark.addColorStop(0.5, "rgba(9,12,10,0.96)");
+  bark.addColorStop(1, "rgba(27,29,21,0.9)");
+  g.fillStyle = bark;
+  g.beginPath();
+  g.moveTo(-trunkW * 0.92, 0);
+  g.bezierCurveTo(
+    -trunkW * 0.76, -height * 0.2,
+    -trunkW * 0.52, -height * 0.36,
+    -trunkW * 0.34, trunkTop
+  );
+  g.lineTo(trunkW * 0.4, trunkTop);
+  g.bezierCurveTo(
+    trunkW * 0.63, -height * 0.34,
+    trunkW * 0.86, -height * 0.16,
+    trunkW, 0
+  );
+  g.closePath();
+  g.fill();
+
+  g.strokeStyle = "rgba(255,188,112,0.28)";
+  g.lineWidth = Math.max(1.2, trunkW * 0.05);
+  g.beginPath();
+  g.moveTo(trunkW * 0.98, 0);
+  g.bezierCurveTo(
+    trunkW * 0.84, -height * 0.16,
+    trunkW * 0.62, -height * 0.34,
+    trunkW * 0.4, trunkTop
+  );
+  g.stroke();
+
+  /* bare branches */
+  for (let i = 0; i < 6; i++) {
+    const by = trunkTop * (0.52 + i * 0.085);
+    const len = height * (0.16 + rnd() * 0.26);
+    const side = rnd() > 0.5 ? 1 : -1;
+    const ex = side * len * (0.5 + rnd() * 0.7);
+    const ey = by - height * (0.08 + rnd() * 0.16);
+    g.strokeStyle = "rgba(11,14,10,0.9)";
+    g.lineWidth = height * (0.01 + rnd() * 0.014);
+    g.lineCap = "round";
+    g.beginPath();
+    g.moveTo(side * trunkW * 0.16, by);
+    g.quadraticCurveTo(ex * 0.45, by - height * 0.1, ex, ey);
+    g.stroke();
+  }
+
+  /* canopy mass */
+  const canR = height * 0.33;
+  const cx = dir * height * 0.15;
+  const cy = trunkTop - height * 0.17;
+  for (let i = 0; i < 34; i++) {
+    const a = rnd() * TAU;
+    const rr = Math.pow(rnd(), 0.68) * canR;
+    const lx = cx + Math.cos(a) * rr * 0.82 + dir * canR * 0.12;
+    const ly = cy + Math.sin(a) * rr * 0.56;
+    const size = height * (0.03 + rnd() * 0.085);
+    const lit = clamp((-lx * dir + canR) / (canR * 2), 0, 1);
+    const warm = lit > 0.62;
+    g.fillStyle = warm
+      ? `rgba(${62 + Math.floor(rnd() * 18)},${62 + Math.floor(rnd() * 16)},${34 + Math.floor(rnd() * 12)},${0.5 + rnd() * 0.28})`
+      : `rgba(${12 + Math.floor(rnd() * 10)},${22 + Math.floor(rnd() * 12)},${16 + Math.floor(rnd() * 8)},${0.62 + rnd() * 0.3})`;
+    g.beginPath();
+    g.ellipse(lx, ly, size * 1.25, size * 0.68, rnd() * 1.2, 0, TAU);
+    g.fill();
+  }
+
+  /* sunlit leaf flicks along the inner edge */
+  g.strokeStyle = "rgba(255,196,120,0.24)";
+  g.lineWidth = 1.1;
+  for (let i = 0; i < 18; i++) {
+    const lx = cx + dir * canR * (0.35 + rnd() * 0.6);
+    const ly = cy + (rnd() - 0.5) * canR * 1.15;
+    const len = height * (0.012 + rnd() * 0.03);
+    g.beginPath();
+    g.moveTo(lx, ly);
+    g.quadraticCurveTo(
+      lx + dir * len * 0.5, ly - len * 0.4,
+      lx + dir * len, ly - len * 0.15
+    );
+    g.stroke();
+  }
+  g.restore();
+}
+
+function drawCanopyFrame(g, w, h, horizonY) {
+  const rnd = mulberry32(88213);
+  g.save();
+  g.filter = "blur(2.2px)";
+  for (let i = 0; i < 24; i++) {
+    const side = i % 2 === 0 ? 0 : 1;
+    const x = side ? w - rnd() * w * 0.16 : rnd() * w * 0.16;
+    const y = -OV + rnd() * h * 0.16;
+    const size = 5 + rnd() * 16;
+    g.fillStyle = `rgba(${12 + Math.floor(rnd() * 10)},${24 + Math.floor(rnd() * 12)},${17 + Math.floor(rnd() * 8)},${0.35 + rnd() * 0.35})`;
+    g.beginPath();
+    g.ellipse(x, y, size * 1.5, size * 0.75, rnd() * 1.4, 0, TAU);
+    g.fill();
+  }
+  g.restore();
 }
 
 function cloud(g, x, y, w, h, color) {
