@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+<meta name="theme-color" content="#05080f" />
+<title>Turbo Strikers — Rocket Soccer × Item Mayhem</title>
+<meta name="description" content="A 3D rocket-soccer arena game with Mario Kart style items. Drift, boost, jump and unleash shells, bananas and lightning." />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%2359d9ff'/%3E%3Cstop offset='1' stop-color='%23ff7a1a'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='16' fill='%23060b14'/%3E%3Cpath d='M12 40c8-16 32-16 40 0' fill='none' stroke='url(%23g)' stroke-width='6' stroke-linecap='round'/%3E%3Ccircle cx='32' cy='29' r='8' fill='%23eaf6ff'/%3E%3C/svg%3E" />
+<link rel="stylesheet" href="./css/style.css" />
+<script type="importmap">
+  { "imports": { "three": "./vendor/three.module.min.js" } }
+</script>
+</head>
+<body>
+<div id="app">
+  <canvas id="game-canvas" aria-label="Turbo Strikers 3D arena"></canvas>
+  <div class="screen-shade" aria-hidden="true"></div>
+  <div class="scanlines" aria-hidden="true"></div>
+  <div class="vignette" aria-hidden="true"></div>
+
+  <!-- ══════════════ IN-GAME HUD ══════════════ -->
+  <div id="hud" class="hud hidden" aria-live="polite">
+    <div class="scoreboard">
+      <div class="team-block blue">
+        <div class="team-crest">B</div>
+        <div class="team-meta"><span class="team-label">BLUE</span><span class="team-sub">HOME</span></div>
+        <span class="score" id="score-blue">0</span>
+      </div>
+      <div class="clock-wrap">
+        <div class="clock" id="timer">3:00</div>
+        <div class="clock-sub" id="clock-sub">FIRST TO 5</div>
+        <div class="overtime hidden" id="overtime">OVERTIME</div>
+      </div>
+      <div class="team-block orange">
+        <span class="score" id="score-orange">0</span>
+        <div class="team-meta right"><span class="team-label">ORANGE</span><span class="team-sub">AWAY</span></div>
+        <div class="team-crest">O</div>
+      </div>
+    </div>
+
+    <div class="top-right">
+      <div class="minimap-shell">
+        <canvas id="minimap" width="176" height="220"></canvas>
+        <div class="minimap-label">RADAR</div>
+      </div>
+      <button id="pause-btn" class="icon-btn" aria-label="Pause">❚❚</button>
+    </div>
+
+    <div class="boost-wrap">
+      <div class="boost-dial" id="boost-dial">
+        <div class="boost-inner">
+          <span id="boost-value">33</span>
+          <small>BOOST</small>
+        </div>
+      </div>
+      <div class="speed-chip"><span id="speed-value">0</span><small>KM/H</small></div>
+    </div>
+
+    <div class="item-wrap">
+      <div class="item-slot" id="item-slot">
+        <div class="item-glow"></div>
+        <span id="item-icon">?</span>
+        <div class="item-key">E</div>
+      </div>
+      <div class="item-name" id="item-name">NO ITEM</div>
+    </div>
+
+    <div class="race-cam">
+      <button id="cam-btn" class="mini-btn">CAM · BALL</button>
+    </div>
+
+    <div class="center-stack">
+      <div id="center-msg" class="center-msg"></div>
+      <div id="sub-msg" class="sub-msg"></div>
+    </div>
+
+    <div id="event-feed" class="event-feed"></div>
+
+    <div class="hint-bar" id="hint-bar">
+      <span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> DRIVE</span>
+      <span><kbd>SPACE</kbd> JUMP / FLIP</span>
+      <span><kbd>SHIFT</kbd> BOOST</span>
+      <span><kbd>E</kbd> ITEM</span>
+      <span><kbd>C</kbd> CAMERA</span>
+      <span><kbd>R</kbd> RESET</span>
+    </div>
+  </div>
+
+  <!-- ══════════════ MOBILE TOUCH CONTROLS ══════════════ -->
+  <div id="touch-controls" class="touch-controls hidden" aria-hidden="true">
+    <div class="joystick-zone" id="joystick-zone">
+      <div class="joystick-ring">
+        <div class="joystick-knob" id="joystick-knob"></div>
+        <div class="joystick-cross"></div>
+      </div>
+      <span class="touch-label">DRIVE</span>
+    </div>
+    <div class="touch-actions">
+      <button id="touch-item" class="touch-btn item-btn" aria-label="Use item">ITEM</button>
+      <button id="touch-jump" class="touch-btn jump-btn" aria-label="Jump">JUMP</button>
+      <button id="touch-boost" class="touch-btn boost-btn" aria-label="Boost">BOOST</button>
+    </div>
+    <button id="touch-cam" class="touch-mini" aria-label="Toggle camera">CAM</button>
+  </div>
+
+  <!-- ══════════════ MAIN MENU ══════════════ -->
+  <div id="menu" class="menu">
+    <div class="menu-grid">
+      <header class="hero">
+        <div class="league-tag"><span class="live-dot"></span> NEO LEAGUE · EXHIBITION MATCH</div>
+        <h1 class="logo">
+          <span class="logo-a">TURBO</span>
+          <span class="logo-b">STRIKERS</span>
+        </h1>
+        <p class="tagline">ROCKET SOCCER <em>×</em> ITEM MAYHEM</p>
+        <p class="hero-copy">Two teams. One oversized ball. Zero sportsmanship. Drift, fly, boost — and empty a shell into your rival's exhaust.</p>
+        <div class="team-strip">
+          <div class="team-pill blue"><span class="dot"></span>BLUE SQUAD <b>YOU + KAI</b></div>
+          <div class="vs">VS</div>
+          <div class="team-pill orange"><span class="dot"></span>ORANGE SQUAD <b>NOVA + REX</b></div>
+        </div>
+      </header>
+
+      <section class="menu-panel">
+        <div class="panel-head">
+          <span class="panel-kicker">MATCH SETUP</span>
+          <span class="panel-format">2V2 · 3:00 · FIRST TO 5</span>
+        </div>
+        <button id="play-btn" class="play-btn">
+          <span class="play-icon">▶</span>
+          <span class="play-text">Play</span>
+          <span class="play-sub">QUICK MATCH</span>
+        </button>
+        <div class="panel-settings">
+          <div class="setting-group">
+            <span class="setting-label">BOT DIFFICULTY</span>
+            <div class="segmented" id="difficulty" role="group" aria-label="Bot difficulty">
+              <button data-difficulty="rookie">ROOKIE</button>
+              <button data-difficulty="pro" class="active">PRO</button>
+              <button data-difficulty="allstar">ALL-STAR</button>
+            </div>
+          </div>
+          <button id="sound-btn" class="toggle-btn" aria-label="Toggle sound"><span class="toggle-led"></span>SOUND ON</button>
+        </div>
+        <div class="controls-card">
+          <div class="control"><span class="keys"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd></span><span>DRIVE &amp; STEER</span></div>
+          <div class="control"><span class="keys"><kbd>SPACE</kbd></span><span>JUMP / FLIP</span></div>
+          <div class="control"><span class="keys"><kbd>SHIFT</kbd></span><span>BOOST</span></div>
+          <div class="control"><span class="keys"><kbd>E</kbd></span><span>USE ITEM</span></div>
+          <div class="control"><span class="keys"><kbd>C</kbd></span><span>BALL CAM</span></div>
+          <div class="control"><span class="keys"><kbd>R</kbd></span><span>RESET CAR</span></div>
+        </div>
+        <div class="item-legend">
+          <span class="legend-title">ITEM BOX DROPS</span>
+          <span class="legend-items">🍄 🟢 🔴 🍌 ⭐ ⚡ 💣</span>
+        </div>
+        <p class="touch-note">On phone or tablet: use the on-screen stick and action pads.</p>
+      </section>
+    </div>
+    <footer class="menu-footer">
+      <span>BUILT FOR THE NEO LEAGUE · WEBGL</span>
+      <span class="footer-right">TIP: BOOST PADS REFILL YOUR TANK · HOLD <kbd>SHIFT</kbd> TO FLY</span>
+    </footer>
+  </div>
+
+  <!-- ══════════════ PAUSE ══════════════ -->
+  <div id="pause-screen" class="overlay hidden">
+    <div class="overlay-card">
+      <div class="overlay-kicker">MATCH PAUSED</div>
+      <h2>TIMEOUT</h2>
+      <div class="overlay-score"><span class="blue" id="pause-blue">0</span><b>—</b><span class="orange" id="pause-orange">0</span></div>
+      <div class="overlay-actions">
+        <button id="resume-btn" class="btn-primary">Resume</button>
+        <button id="restart-btn" class="btn-ghost">Restart Match</button>
+        <button id="quit-btn" class="btn-ghost">Quit to Menu</button>
+      </div>
+      <p class="overlay-hint"><kbd>ESC</kbd> OR <kbd>P</kbd> TO RESUME</p>
+    </div>
+  </div>
+
+  <!-- ══════════════ RESULT ══════════════ -->
+  <div id="result-screen" class="overlay hidden">
+    <div class="overlay-card result-card">
+      <div class="overlay-kicker" id="result-kicker">MATCH COMPLETE</div>
+      <h2 id="result-title">BLUE WINS</h2>
+      <div class="overlay-score"><span class="blue" id="result-blue">0</span><b>—</b><span class="orange" id="result-orange">0</span></div>
+      <p class="result-stats" id="result-stats"></p>
+      <div class="overlay-actions">
+        <button id="again-btn" class="btn-primary">Play Again</button>
+        <button id="menu-btn" class="btn-ghost">Main Menu</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="goal-flash" class="goal-flash" aria-hidden="true"></div>
+
+  <div id="loading" class="loading">
+    <div class="loader-mark">TS</div>
+    <div class="loader-bar"><i></i></div>
+    <div class="loader-text">WARMING UP THE ARENA</div>
+  </div>
+</div>
+
+<script type="module" src="./js/main.js"></script>
+</body>
+</html>
