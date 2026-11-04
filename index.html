@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#17251f" />
+  <meta name="color-scheme" content="dark" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="description" content="한 번의 터치로 도끼를 휘두르고 장작을 모으는 모바일 게임." />
+  <title>장작 패기 · Woodcutter</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%231b2a24'/%3E%3Cpath d='M20 46 L42 18' stroke='%23c58a4d' stroke-width='6' stroke-linecap='round'/%3E%3Cpath d='M38 12 L52 22 L44 34 L31 24 Z' fill='%23d8e2e6'/%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main id="app">
+    <canvas id="scene" aria-hidden="true"></canvas>
+
+    <div class="grade" aria-hidden="true"></div>
+    <div class="grain" aria-hidden="true"></div>
+
+    <div class="ui">
+      <header class="hud">
+        <div class="score" id="scoreCard">
+          <span class="score-icon" aria-hidden="true">
+            <svg viewBox="0 0 40 40" fill="none">
+              <ellipse cx="13" cy="27" rx="10" ry="7.5" fill="#c0844c"/>
+              <ellipse cx="13" cy="27" rx="6.2" ry="4.5" fill="#e8b878"/>
+              <ellipse cx="13" cy="27" rx="2.6" ry="1.9" fill="#b57a43"/>
+              <path d="M18 21 31 15a5 5 0 0 1 4 9l-12 6" fill="#8d5a32"/>
+              <path d="M21 20.2 32 15.4" stroke="#d9a163" stroke-width="1.4" stroke-linecap="round" opacity=".7"/>
+              <path d="M20 35.5 34 28" stroke="#93603a" stroke-width="8.5" stroke-linecap="round"/>
+              <ellipse cx="35" cy="27" rx="4.4" ry="4.1" fill="#d9a66b"/>
+              <ellipse cx="35" cy="27" rx="2.4" ry="2.2" fill="#b57a43"/>
+            </svg>
+          </span>
+          <span class="score-body">
+            <span class="score-value" id="scoreValue">0</span>
+            <span class="score-label">장작</span>
+          </span>
+        </div>
+
+        <button class="icon-btn" id="muteBtn" type="button" aria-label="소리 끄기" aria-pressed="false">
+          <svg class="sound-on" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M4 9.5h3.2L12 5.6v12.8L7.2 14.5H4z" fill="currentColor"/>
+            <path d="M15.5 9a4.4 4.4 0 0 1 0 6M18.2 6.4a8 8 0 0 1 0 11.2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+          </svg>
+          <svg class="sound-off" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M4 9.5h3.2L12 5.6v12.8L7.2 14.5H4z" fill="currentColor"/>
+            <path d="m15.4 9.4 4.8 5.2m0-5.2-4.8 5.2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+          </svg>
+        </button>
+      </header>
+
+      <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+      <footer class="footer">
+        <p class="hint" id="hint">버튼을 눌러 장작을 패세요</p>
+
+        <button class="chop" id="chopBtn" type="button" aria-label="도끼 휘두르기, 장작 1개 획득">
+          <span class="chop-halo" aria-hidden="true"></span>
+          <span class="chop-body">
+            <svg class="chop-axe" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+              <path d="M11 39 30 13" stroke="#6b3f21" stroke-width="9" stroke-linecap="round"/>
+              <path d="M11 39 30 13" stroke="#c08a52" stroke-width="6.2" stroke-linecap="round"/>
+              <path d="M11 39 30 13" stroke="#e5b77b" stroke-width="1.6" stroke-linecap="round" opacity=".6"/>
+              <path d="M27 8.5c4.6-2.2 10-1.2 13.4 2.1l-7.1 11.2c-3.2-3.3-7.6-4.4-11.2-2.9z" fill="#dbe5e9"/>
+              <path d="M32.3 13.7c2.2-.9 4.6-.5 6.3 1.1l-3.3 5.2c-1.7-1.6-3.8-2.2-5.9-1.7z" fill="#f7fbfc" opacity=".9"/>
+              <path d="m8.5 35.4 4.9 4.9" stroke="#3f2412" stroke-width="2" stroke-linecap="round" opacity=".55"/>
+            </svg>
+            <span class="chop-text">
+              <span class="chop-title">도끼 휘두르기</span>
+              <span class="chop-sub">TAP TO CHOP</span>
+            </span>
+          </span>
+        </button>
+      </footer>
+    </div>
+  </main>
+
+  <script type="module" src="game.js"></script>
+</body>
+</html>
