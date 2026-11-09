@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#10131c" />
+  <title>별의 잔향 — 이계여행 TRPG</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Gowun+Batang:wght@400;700&family=Marcellus&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="ambient ambient-one"></div><div class="ambient ambient-two"></div>
+  <header class="topbar">
+    <a class="brand" href="#" aria-label="별의 잔향 홈"><span class="brand-mark">✦</span><span>별의 잔향<small>AN OTHERWORLD TALE</small></span></a>
+    <div class="top-actions"><span class="chapter-label"><i></i> 제1장 · 낯선 세계</span><button class="icon-button" id="sound-toggle" aria-label="효과음 켜기" title="효과음">♫</button><button class="icon-button" id="save-button" aria-label="저장" title="저장하기">▣</button></div>
+  </header>
+  <main id="app">
+    <section class="title-screen" id="title-screen">
+      <div class="title-art" aria-hidden="true"><div class="moon"></div><div class="mountain mountain-back"></div><div class="mountain mountain-front"></div><div class="hero-silhouette"><span></span></div><div class="art-stars">✦　·　✧　　 ·　✦</div></div>
+      <div class="title-copy"><p class="eyebrow">A STORY OF REBIRTH &amp; ADVENTURE</p><h1>별의 <em>잔향</em></h1><p class="title-lede">눈을 뜬 곳은, 당신이 알던 세계의 끝이었다.</p><p class="title-desc">선택으로 길을 열고, 주사위처럼 운명을 굴리는<br>텍스트 TRPG 어드벤처</p><div class="title-buttons"><button class="primary-button" id="begin-button">여행을 시작한다 <span>→</span></button><button class="text-button hidden" id="continue-button">이어하기</button></div><div class="title-note">권장 플레이 시간 15–25분 <span>·</span> 자동 저장</div></div>
+    </section>
+    <section class="game-layout hidden" id="game-layout">
+      <aside class="sidebar">
+        <section class="character-card panel">
+          <div class="character-top"><div class="avatar"><span>✧</span></div><div><span class="muted-label">이계의 여행자</span><h2 id="hero-name">이방인</h2><p id="hero-class">별의 길잡이 · Lv.1</p></div></div>
+          <div class="resource"><div class="resource-label"><span>생명력</span><b id="hp-text">24 / 24</b></div><div class="meter"><i id="hp-meter"></i></div></div>
+          <div class="resource mana-resource"><div class="resource-label"><span>마력</span><b id="mp-text">12 / 12</b></div><div class="meter"><i id="mp-meter"></i></div></div>
+          <div class="character-stats"><div><span>공격</span><b id="atk-stat">5</b></div><div><span>수호</span><b id="def-stat">2</b></div><div><span>경험치</span><b id="exp-stat">0 / 12</b></div></div>
+          <div class="level-progress"><i id="exp-meter"></i></div>
+        </section>
+        <section class="panel quest-panel"><div class="panel-heading"><span>현재 여정</span><span class="quest-icon">✧</span></div><h3 id="quest-title">별의 부름</h3><p id="quest-description">길을 잃은 여행자에게 다가온 목소리의 정체를 찾아라.</p><div class="quest-status"><span class="status-dot"></span><span id="quest-status">진행 중</span></div></section>
+        <section class="panel inventory-panel"><div class="panel-heading"><span>소지품</span><span class="gold-count">◈ <b id="gold-count">8</b></span></div><div id="inventory-list" class="inventory-list"></div></section>
+        <button class="journal-button" id="journal-button"><span>☷</span> 여행의 기록 <span class="journal-count" id="journal-count">1</span></button>
+      </aside>
+      <section class="story-column">
+        <div class="location-bar"><span class="location-pin">⌖</span><span id="location-name">경계의 숲</span><span class="location-line"></span><span id="day-label">첫째 날 · 새벽</span></div>
+        <article class="story-card panel" id="story-card">
+          <div class="scene-art" id="scene-art"><div class="scene-orb"></div><div class="scene-landscape"></div><span class="scene-symbol">✦</span></div>
+          <div class="story-content"><div class="story-kicker" id="story-kicker">PROLOGUE</div><h2 id="story-title">별빛 아래에서</h2><div class="story-text" id="story-text"></div><div class="dice-result hidden" id="dice-result"></div><div class="choice-list" id="choice-list"></div><div class="combat-ui hidden" id="combat-ui"></div><div class="story-footer"><span id="story-progress">기록 01</span><span>✦</span><span>당신의 선택이 이야기를 바꿉니다</span></div></div>
+        </article>
+        <div class="bottom-hint"><span>⌘</span> 선택지를 눌러 여정을 이어가세요</div>
+      </section>
+      <aside class="right-rail"><div class="rail-heading">여정의 흔적</div><div class="timeline" id="timeline"></div><div class="rail-quote">“다른 세계에서의 삶도<br>결국, 당신의 이야기다.”<span>— 이름 없는 기록자</span></div></aside>
+    </section>
+  </main>
+  <div class="toast" id="toast" role="status"></div>
+  <div class="modal-backdrop hidden" id="modal-backdrop"><div class="modal panel"><button class="modal-close" id="modal-close">×</button><p class="eyebrow">YOUR JOURNEY</p><h2>여행의 기록</h2><div id="journal-entries" class="journal-entries"></div><div class="modal-actions"><button class="secondary-button" id="restart-button">처음부터 다시</button><button class="primary-button" id="modal-ok">계속 여행하기</button></div></div></div>
+  <script src="game.js"></script>
+</body>
+</html>
